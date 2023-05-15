@@ -1,105 +1,56 @@
-# markmap
+# markmap Pull Request
 
-[![Join the chat at https://gitter.im/gera2ld/markmap](https://badges.gitter.im/gera2ld/markmap.svg)](https://gitter.im/gera2ld/markmap?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+This is to suggest modifying how a markdown table is interpretted on the markmap schema. 
 
-Visualize your Markdown as mindmaps.
+## Current Transformation
 
-This project is heavily inspired by [dundalek's markmap](https://github.com/dundalek/markmap).
+An example of the current transformation does not logicallly follow the structure of a table and can cause misinterpretation or frustration in how the information was supposed to be expressed. 
 
-👉 [Try it out](https://markmap.js.org/repl).
+```markdown
+# People
 
-👉 [Read the documentation](https://markmap.js.org/docs) for more detail.
+A simple syntax for a custom object type.
 
-## Packages
+| --- | --- | --- 
+| Item | Type | Description |
+| --- | --- | --- |
+| Name | string | The person's name. |
+| Age | integer | The person's age. |
+| City | string | The person's current residency of city. |
+| State | string | The person's current residency of state. |
+| Active | boolean | Is the person an active participant? |
 
-- [markmap-common](https://github.com/markmap/markmap/tree/master/packages/markmap-common)
-  ![NPM](https://img.shields.io/npm/v/markmap-common.svg)
-
-Common types and utility functions used by markmap packages.
-
-- [markmap-lib](https://github.com/gera2ld/markmap/tree/master/packages/markmap-lib)
-  ![NPM](https://img.shields.io/npm/v/markmap-lib.svg)
-
-  Transform Markdown to data used by markmap.
-
-- [markmap-view](https://github.com/gera2ld/markmap/tree/master/packages/markmap-view)
-  ![NPM](https://img.shields.io/npm/v/markmap-view.svg)
-
-  Render markmap in browser.
-
-- [markmap-autoloader](https://github.com/markmap/markmap/tree/master/packages/markmap-autoloader)
-  ![NPM](https://img.shields.io/npm/v/markmap-autoloader.svg)
-
-  Load markmaps automatically in HTML.
-
-- [markmap-toolbar](https://github.com/markmap/markmap/tree/master/packages/markmap-toolbar)
-  ![NPM](https://img.shields.io/npm/v/markmap-toolbar.svg)
-
-  Extensible toolbar for markmap.
-
-- [markmap-cli](https://github.com/gera2ld/markmap/tree/master/packages/markmap-cli)
-  ![NPM](https://img.shields.io/npm/v/markmap-cli.svg)
-
-  Use markmap in command-line.
-
-## Related
-
-Markmap is also available in:
-
-- [VSCode](https://marketplace.visualstudio.com/items?itemName=gera2ld.markmap-vscode) and [Open VSX](https://open-vsx.org/extension/gera2ld/markmap-vscode)
-- Vim / Neovim: [coc-markmap](https://github.com/gera2ld/coc-markmap) ![NPM](https://img.shields.io/npm/v/coc-markmap.svg) - powered by [coc.nvim](https://github.com/neoclide/coc.nvim)
-
-
-## Usage
-
-### Transform
-
-Transform Markdown to markmap data:
-
-```js
-import { Transformer } from 'markmap-lib';
-
-const transformer = new Transformer();
-
-// 1. transform markdown
-const { root, features } = transformer.transform(markdown);
-
-// 2. get assets
-// either get assets required by used features
-const { styles, scripts } = transformer.getUsedAssets(features);
-// or get all possible assets that could be used later
-const { styles, scripts } = transformer.getAssets();
 ```
 
-Now we are ready for rendering a markmap in browser.
+![Markmap Example Screenshot](/markmap-screenshot.png "An example of a markmap diagram transforming a table.")
 
-### Render
+The markmap does separate the table header from the table content however it isn't an appropriate structuring interpretation. Many would argue that it would be better to render the table as an object on the markmap or at the very least incorporate the header labels to the appropriate data entry on each node.
 
-Create an SVG element with explicit width and height:
+## Suggested Proposal
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/d3@6"></script>
-<script src="https://cdn.jsdelivr.net/npm/markmap-view"></script>
+Provide two (*potentially three*) options for rendering tables in markdown. To keep it consistent with a mindmap structure by default it would be best to render the mark map with appropriate labels as defined by the header row in the table before each data entry.
 
-<svg id="markmap" style="width: 800px; height: 800px"></svg>
-```
+### Convert `<hr>` elements into labels for each `<td>`
 
-Render a markmap to the SVG element:
+![Markmap Suggested Proposal](/proposed-markmap-label-example.png "Suggested proposal default example.")
 
-```js
-// We got { root } data from transforming, and possible extraneous assets { styles, scripts }.
+To help with style attributes ideally the labels would preferably be a smaller font with itallicized font. A considerable feature might be to display briefly upon the transform animation of the markmap and then transforming the label into an icon that is expandable/displayed upon hover or click.
 
-const { Markmap, loadCSS, loadJS } = window.markmap;
+### Simply render a standard SVG table
 
-// 1. load assets
-if (styles) loadCSS(styles);
-if (scripts) loadJS(scripts, { getMarkmap: () => window.markmap });
+A more simplistic approach would be to instead render the table as it initially would be rendered in html syntax.  
 
-// 2. create markmap
 
-Markmap.create('#markmap', null, root);
+| Item | Type | Description |
+| --- | --- | --- |
+| Name | string | The person's name. |
+| Age | integer | The person's age. |
+| City | string | The person's current residency of city. |
+| State | string | The person's current residency of state. |
+| Active | boolean | Is the person an active participant? |
 
-// or pass an SVG element directly
-const svgEl = document.querySelector('#markmap');
-Markmap.create(svgEl, null, data);
-```
+Otherwise to avoid using the `<ForeignObject>` element a table could be made interactive and rendered with SVG. 
+
+### Custom Paginated Row Component
+
+Another potential idea which would be a little more sophisticated would be a custom component that would render either one to a numbrer of records in the table that could cycle through upon user interaction, automatically based on a timer, and/or simply include a summary of the table that expands to one of the previously proposed suggestions. Utilizing the same table reference, one could imagiine that it would visually render to something like this: 
